@@ -1,1 +1,1 @@
-os = 'mac' # choose between windows,linux and mac
+os_name = 'mac' # choose between windows,linux and mac

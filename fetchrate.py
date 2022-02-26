@@ -41,11 +41,11 @@ def send_both_conversion_rates(row):
 def fetch_conversion_rate(site = 'sunway'):
     try:
         if site == 'sunway':
-            if os == 'mac':
+            if os_name == 'mac':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
-            elif os == 'windows':
+            elif os_name == 'windows':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver.exe')
-            elif os == 'linux':
+            elif os_name == 'linux':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
             driver.get('https://sunwaymoney.com')
             select = driver.find_element_by_xpath('//*[@id="selectCurrencyContainer"]/div[2]')
@@ -70,11 +70,11 @@ def fetch_conversion_rate(site = 'sunway'):
             return today_rate
 
         if site == 'instarem':
-            if os == 'mac':
+            if os_name == 'mac':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
-            elif os == 'windows':
+            elif os_name == 'windows':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver.exe')
-            elif os == 'linux':
+            elif os_name == 'linux':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
             driver.get('https://instarem.com/en-in/')
             source_currency_amount = driver.find_element_by_id('gross_source_amount')
@@ -129,7 +129,7 @@ def main(history_retention=10):
 
         # Write todays rate to file
         try:
-            if 'conversion_hist.csv' not in os.listdir('./'):
+            if os.path.exists('./conversion_hist.csv'):
                 with open('conversion_hist.csv', 'w') as write:
                     write.writelines('date,sunway_conversion_rate,instarem_conversion_rate\n')
                     write.writelines(str(timestamp) + ',' + \
