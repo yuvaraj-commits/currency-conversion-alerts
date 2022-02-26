@@ -1,0 +1,4 @@
+selenium
+telegram-send
+pandas
+pickle
