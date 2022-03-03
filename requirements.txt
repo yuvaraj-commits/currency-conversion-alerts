@@ -1,4 +1,4 @@
 selenium
 telegram-send
 pandas
-pickle
+requests

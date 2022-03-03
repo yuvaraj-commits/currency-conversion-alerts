@@ -7,7 +7,10 @@ import os
 import pandas as pd
 from datetime import datetime
 import warnings
-from variables import *
+import pickle
+from variables import os_name,url_value
+import urllib.parse
+import requests
 warnings.filterwarnings("ignore")
 
 def send_go_alert(conversion_rate_today,conversion_rate_yesterday):
@@ -28,14 +31,40 @@ def send_no_go_alert(conversion_rate_today,conversion_rate_yesterday):
     telegram_send.send(messages=["*"*30])
 
 
-
 def send_both_conversion_rates(row):
-    pass
     date_st= datetime.strptime(str(row.date.iloc[0]), '%Y%m%d').date().strftime('%B %d,%Y') 
     sunway_msg = 'Sunway : '+ str(row.sunway_conversion_rate.iloc[0])
     instarem_rate = 'Instarem : ' + str(row.instarem_conversion_rate.iloc[0])
     msg = '*'*10 + '\n' + date_st + '\n' + '-'*10 + '\n' + sunway_msg + '\n' + instarem_rate + '\n' + '*'*10
     telegram_send.send(messages = [msg])
+
+
+def get_hash_key():
+    if os.path.exists('support_lib.serialized'):
+        with open('support_lib.serialized', 'rb') as handle:
+            b = pickle.load(handle)
+        return str(b['hash_key'])
+    else:
+        print('Access token missing.')
+        raise
+
+def send_conversion_rate_to_group(url,row):
+    hash = get_hash_key()
+    url = url.replace('<hash>',hash)
+    date_st= datetime.strptime(str(row.date.iloc[0]), '%Y%m%d').date().strftime('%B %d,%Y') 
+    sunway_msg = 'Sunway : '+ str(row.sunway_conversion_rate.iloc[0])
+    instarem_rate = 'Instarem : ' + str(row.instarem_conversion_rate.iloc[0])
+    msg = '*'*10 + '\n' + date_st + '\n' + '-'*10 + '\n' + sunway_msg + '\n' + instarem_rate + '\n' + '*'*10
+    #telegram_send.send(messages = [msg])
+    encoded = urllib.parse.quote(msg)
+    #print(encoded)
+    url = url.replace('<text>',encoded)
+    #print(url)
+    response = requests.get(url)
+    if response.status_code!=200:
+        print('unable to send message, something failed')
+        raise
+
 
 
 def fetch_conversion_rate(site = 'sunway'):
@@ -44,9 +73,9 @@ def fetch_conversion_rate(site = 'sunway'):
             if os_name == 'mac':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
             elif os_name == 'windows':
-                driver = webdriver.Chrome('./chromedrivers/mac/chromedriver.exe')
+                driver = webdriver.Chrome('./chromedrivers/windows/chromedriver.exe')
             elif os_name == 'linux':
-                driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
+                driver = webdriver.Chrome('./chromedrivers/linux/chromedriver')
             driver.get('https://sunwaymoney.com')
             select = driver.find_element_by_xpath('//*[@id="selectCurrencyContainer"]/div[2]')
             time.sleep(2)
@@ -73,9 +102,9 @@ def fetch_conversion_rate(site = 'sunway'):
             if os_name == 'mac':
                 driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
             elif os_name == 'windows':
-                driver = webdriver.Chrome('./chromedrivers/mac/chromedriver.exe')
+                driver = webdriver.Chrome('./chromedrivers/windows/chromedriver.exe')
             elif os_name == 'linux':
-                driver = webdriver.Chrome('./chromedrivers/mac/chromedriver')
+                driver = webdriver.Chrome('./chromedrivers/linux/chromedriver')
             driver.get('https://instarem.com/en-in/')
             source_currency_amount = driver.find_element_by_id('gross_source_amount')
             source_currency_amount.clear()
@@ -171,8 +200,8 @@ def main(history_retention=10):
         dataframe.head(history_retention).to_csv('conversion_hist.csv',index=False)
 
         #Send both conversion rates
-        send_both_conversion_rates(dataframe.head(1))
-
+        #send_both_conversion_rates(dataframe.head(1))  #For sending to an individual
+        send_conversion_rate_to_group(url_value,dataframe.head(1))
 
         # # LOGIC to notify - Not required
         # if len(rates_dict_sorted_desc)>=2:
