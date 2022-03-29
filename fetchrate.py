@@ -84,9 +84,10 @@ def fetch_conversion_rate(site = 'sunway'):
             searchword = driver.find_element_by_id('searchCurrencyListInput')
             #time.sleep(1)
             searchword.send_keys('INR')
-            #time.sleep(1)
-            inr = driver.find_element_by_xpath('//*[@id="currencyList"]/li[13]/a')
-            #time.sleep(1)
+            time.sleep(1)
+            #inr = driver.find_element_by_xpath('//*[@id="currencyList"]/li[13]/a')
+            inr = driver.find_element_by_xpath('//*[@id="currencyList"]/li[12]') #updated site
+            time.sleep(2)
             inr.click()
             # Fetch The Rate
             time.sleep(1)
@@ -201,6 +202,8 @@ def main(history_retention=10):
 
         #Send both conversion rates
         #send_both_conversion_rates(dataframe.head(1))  #For sending to an individual
+        
+        #Uncomment this line
         send_conversion_rate_to_group(url_value,dataframe.head(1))
 
         # # LOGIC to notify - Not required
@@ -226,6 +229,21 @@ def main(history_retention=10):
 
 
 
+def test():
+    try:
+
+        rate_today_sunway =  fetch_conversion_rate(site = 'sunway')        #17.4656
+        rate_today_instarem =  fetch_conversion_rate(site = 'instarem')        #17.4656
+        timestamp = datetime.now().strftime('%Y%m%d')
+        print(rate_today_sunway)
+        print(rate_today_instarem)
+    except Exception as e:
+        print("Issue in code")
+        print(e)
+        raise
+
+
 
 if __name__ == '__main__':
     main()
+    #test()
